@@ -1,61 +1,41 @@
-import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React from "react";
 import Table from "../components/Table";
 
 export async function getStaticPaths() {
+  const res = await fetch("http://localhost:8080/page");
+  const data = await res.json();
+
   return {
-    paths: [
-      {
-        params: {
-          spike: "home",
-        },
-      },
-      {
-        params: {
-          spike: "about",
-        },
-      },
-    ],
+    paths: data?.map((el) => ({
+      params: { spike: el.spike },
+    })),
     fallback: false,
   };
 }
 
 export async function getStaticProps(context) {
-  const pageDetails = [
-    {
-      spike: "home",
-      showDescription: true,
-      description: "This is test description",
-      name: "Home",
-      showClients: false,
-    },
-    {
-      spike: "about",
-      showDescription: false,
-      description: "This is test description",
-      name: "About",
-      showClients: true,
-    },
-  ];
+  const res = await fetch(
+    `http://localhost:8080/page-details/${context.params.spike}`
+  );
+  const data = await res.json();
 
   return {
     props: {
-      spikeDetails: pageDetails?.find((f) => f.spike === context.params.spike),
+      spikeDetails: data,
     },
   };
 }
 
 export default function Spike({ spikeDetails }) {
-  const [todos, setTodos] = useState(spikeDetails);
-  const router = useRouter();
-
   return (
     <div>
-      <div>{spikeDetails.name}</div>
+      <div style={{ color: spikeDetails.pageTitleColor || "#000000" }}>
+        {spikeDetails.page.name}
+      </div>
       {spikeDetails.showDescription ? (
-        <div>{spikeDetails.description}</div>
+        <div>{spikeDetails.pageDescription}</div>
       ) : null}
-      {spikeDetails.showClients ? <Table /> : null}
+      {spikeDetails.showTable ? <Table pageId={spikeDetails.id} /> : null}
     </div>
   );
 }

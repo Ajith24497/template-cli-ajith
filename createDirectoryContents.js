@@ -9,6 +9,10 @@ const createDirectoryContents = (templatePath, newProjectPath) => {
 
     // get stats about the current file
     const stats = fs.statSync(origFilePath);
+    const writePath =
+      newProjectPath === "."
+        ? `${CURR_DIR}/${file}`
+        : `${CURR_DIR}/${newProjectPath}/${file}`;
 
     if (stats.isFile()) {
       const contents = fs.readFileSync(origFilePath, "utf8");
@@ -16,15 +20,14 @@ const createDirectoryContents = (templatePath, newProjectPath) => {
       // Rename
       if (file === ".npmignore") file = ".gitignore";
 
-      const writePath = `${CURR_DIR}/${newProjectPath}/${file}`;
       fs.writeFileSync(writePath, contents, "utf8");
     } else if (stats.isDirectory()) {
-      fs.mkdirSync(`${CURR_DIR}/${newProjectPath}/${file}`);
+      fs.mkdirSync(writePath);
 
       // recursive call
       createDirectoryContents(
         `${templatePath}/${file}`,
-        `${newProjectPath}/${file}`
+        newProjectPath === "." ? `${file}` : `${newProjectPath}/${file}`
       );
     }
   });
